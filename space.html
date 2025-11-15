@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Explorer</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* REAL WORKING MILKY WAY BACKGROUND */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: url('https://images.unsplash.com/photo-1487925876428-ebd8a23ee1d4?q=80&w=1561&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')
+                no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab {
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            text-transform: uppercase;
+            transition: 0.3s;
+            color: white;
+        }
+
+        .tab:first-child {
+            border-radius: 10px 0 0 10px;
+        }
+
+        .tab:last-child {
+            border-radius: 0 10px 10px 0;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Main Layout */
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr;
+            min-height: calc(100vh - 80px);
+            padding: 40px;
+            gap: 30px;
+            align-items: center;
+        }
+
+        /* Fix: Panels readable */
+        .info-section, .features-section {
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 20px;
+            padding: 30px;
+            height: 80vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Titles */
+        h1 {
+            font-size: 2.8em;
+            background: linear-gradient(45deg, #fff, #b9b9ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        h2 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: #ffd700;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Main Image Sphere */
+        .object-display {
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .space-object {
+            width: 420px;
+            height: 420px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            background-color: #0a1129;
+            box-shadow: 0 0 70px rgba(100, 150, 255, 0.3);
+            transition: 0.7s ease-in-out;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .space-object.rotating {
+            transform: rotate(-360deg) scale(0.3);
+            opacity: 0;
+        }
+
+        .object-name {
+            margin-top: 25px;
+            font-size: 2.3em;
+            letter-spacing: 3px;
+            background: linear-gradient(45deg, #ffffff, #a8c0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .info-item {
+            margin: 15px 0;
+            line-height: 1.6;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-label {
+            color: #88d8ff;
+            font-weight: bold;
+            display: inline-block;
+            width: 160px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .feature-item {
+            background: rgba(255, 255, 255, 0.08);
+            border-left: 4px solid #ffd700;
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            transition: transform 0.2s;
+        }
+
+        .feature-item:hover {
+            transform: translateX(5px);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .feature-title {
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .click-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px 25px;
+            border-radius: 30px;
+            animation: pulse 2s infinite;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+            
+            .info-section, .features-section {
+                height: auto;
+                max-height: 50vh;
+            }
+            
+            .space-object {
+                width: 300px;
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="nav-tabs">
+        <div class="tab active" data-category="solar">Solar System</div>
+        <div class="tab" data-category="nebula">Nebulae</div>
+        <div class="tab" data-category="galaxy">Galaxies</div>
+    </div>
+
+    <div class="container">
+
+        <!-- Left Panel -->
+        <div class="info-section">
+            <h1 id="objectTitle">Sun</h1>
+            <div id="objectInfo"></div>
+        </div>
+
+        <!-- Center Image -->
+        <div class="object-display" id="objectDisplay">
+            <div class="space-object" id="spaceObject"></div>
+            <div class="object-name" id="objectName">SUN</div>
+        </div>
+
+        <!-- Features Panel -->
+        <div class="features-section">
+            <h2>Key Features</h2>
+            <div id="featuresContainer"></div>
+        </div>
+    </div>
+
+    <div class="click-hint">Click on the circle to explore →</div>
+
+    <script>
+        const data = {
+            solar: [
+    {
+        name: "Sun",
+        image: "https://images.unsplash.com/photo-1614642264762-d0a3b8bf3700?auto=format&fit=crop&w=900",
+        info: {
+            "Type": "G-type Main Sequence Star",
+            "Age": "4.6 Billion Years",
+            "Diameter": "1.39 Million km",
+            "Surface Temp": "5,500°C",
+            "Core Temp": "15 Million °C",
+            "Mass": "1.989 × 10³⁰ kg"
+        },
+        features: [
+            { title: "Nuclear Fusion Core", desc: "Fuses 600 million tons of hydrogen into helium every second, releasing enormous energy." },
+            { title: "Solar Activity", desc: "Produces sunspots, solar flares, and coronal mass ejections that affect space weather." },
+            { title: "Gravitational Anchor", desc: "Contains 99.86% of the Solar System's total mass, holding all planets in orbit." }
+        ]
+    },
+    {
+        name: "Mercury",
+        image: "https://science.nasa.gov/wp-content/uploads/2023/11/mercury-messenger-globe-pia15162.jpg",
+        info: {
+            "Type": "Terrestrial Planet",
+            "Distance from Sun": "57.9 Million km",
+            "Diameter": "4,880 km",
+            "Day Length": "59 Earth Days",
+            "Year Length": "88 Earth Days",
+            "Moons": "0"
+        },
+        features: [
+            { title: "Extreme Temperatures", desc: "Surface temperatures range from -173°C at night to 427°C during the day." },
+            { title: "Heavily Cratered", desc: "Surface resembles Earth's Moon with extensive impact craters from meteoroids." },
+            { title: "Large Iron Core", desc: "Has a massive metallic core making up about 85% of its radius." }
+        ]
+    },
+    {
+        name: "Venus",
+        image: "https://science.nasa.gov/wp-content/uploads/2022/05/pia00104-venus-computer-simulated-global-view.jpg",
+        info: {
+            "Type": "Terrestrial Planet",
+            "Distance from Sun": "108 Million km",
+            "Diameter": "12,104 km",
+            "Surface Temp": "462°C",
+            "Atmosphere": "96.5% CO₂",
+            "Day Length": "243 Earth Days"
+        },
+        features: [
+            { title: "Runaway Greenhouse Effect", desc: "Thick CO₂ atmosphere traps heat, making it the hottest planet." },
+            { title: "Retrograde Rotation", desc: "Rotates backwards compared to other planets - sun rises in west, sets in east." },
+            { title: "Volcanic Landscape", desc: "Surface covered with volcanoes and deformed mountains with few impact craters." }
+        ]
+    },
+    {
+        name: "Earth",
+        image: "https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=900",
+        info: {
+            "Type": "Terrestrial Planet",
+            "Distance from Sun": "149.6 Million km",
+            "Diameter": "12,742 km",
+            "Moons": "1",
+            "Orbital Period": "365.25 Days",
+            "Surface Temp": "15°C Average"
+        },
+        features: [
+            { title: "Life-Sustaining Planet", desc: "Only known planet with liquid water and life in the universe." },
+            { title: "Protective Atmosphere", desc: "Nitrogen-oxygen atmosphere with ozone layer that blocks harmful radiation." },
+            { title: "Active Geology", desc: "Plate tectonics, volcanic activity, and water cycle create diverse landscapes." }
+        ]
+    },
+    {
+        name: "Mars",
+        image: "https://science.nasa.gov/wp-content/uploads/2024/03/pia04304-mars.jpg?w=1536",
+        info: {
+            "Type": "Terrestrial Planet",
+            "Distance from Sun": "227.9 Million km",
+            "Diameter": "6,779 km",
+            "Moons": "2 (Phobos & Deimos)",
+            "Day Length": "24.6 Hours",
+            "Atmosphere": "95% CO₂"
+        },
+        features: [
+            { title: "The Red Planet", desc: "Iron oxide (rust) in soil gives Mars its distinctive red color." },
+            { title: "Olympus Mons", desc: "Largest volcano in Solar System - 3 times taller than Mount Everest." },
+            { title: "Water Evidence", desc: "Polar ice caps and dry riverbeds suggest past liquid water and possible life." }
+        ]
+    },
+    {
+        name: "Jupiter",
+        image: "https://media.wired.com/photos/5d4e00e871015900088915b4/1:1/w_1999,h_1999,c_limit/photo_space_081019_jupiter.jpg",
+        info: {
+            "Type": "Gas Giant",
+            "Distance from Sun": "778.5 Million km",
+            "Diameter": "139,820 km",
+            "Moons": "95+",
+            "Day Length": "9.9 Hours",
+            "Great Red Spot": "400-year Storm"
+        },
+        features: [
+            { title: "Largest Planet", desc: "More massive than all other planets combined - 318 Earth masses." },
+            { title: "Great Red Spot", desc: "Giant anticyclonic storm larger than Earth that has raged for centuries." },
+            { title: "Strong Magnetosphere", desc: "Magnetic field 20,000 times stronger than Earth's, trapping dangerous radiation." }
+        ]
+    },
+    {
+        name: "Saturn",
+        image: "https://assets.science.nasa.gov/dynamicimage/assets/science/psd/solar/2023/06/pia21046.jpg?w=2012&h=1024&fit=clip&crop=faces%2Cfocalpoint",
+        info: {
+            "Type": "Gas Giant",
+            "Distance from Sun": "1.4 Billion km",
+            "Diameter": "116,460 km",
+            "Moons": "146+",
+            "Ring System": "Ice & Rock Particles",
+            "Day Length": "10.7 Hours"
+        },
+        features: [
+            { title: "Spectacular Ring System", desc: "Seven main rings composed of ice particles and rocky debris." },
+            { title: "Low Density", desc: "Less dense than water - would float in a sufficiently large ocean." },
+            { title: "Titan Moon", desc: "Largest moon with thick atmosphere and liquid methane lakes." }
+        ]
+    },
+    {
+        name: "Uranus",
+        image: "https://assets.science.nasa.gov/dynamicimage/assets/science/missions/webb/science/2023/04/STScI-01GWQDPJTF1MY8ZGN4WBMWMACJ.png",
+        info: {
+            "Type": "Ice Giant",
+            "Distance from Sun": "2.9 Billion km",
+            "Diameter": "50,724 km",
+            "Axial Tilt": "98°",
+            "Moons": "27",
+            "Discovery": "1781 by Herschel"
+        },
+        features: [
+            { title: "Sideways Planet", desc: "Rotates on its side with poles where other planets have equators." },
+            { title: "Ice Giant Composition", desc: "Atmosphere of hydrogen, helium with water, ammonia, methane ices." },
+            { title: "Faint Ring System", desc: "13 dark rings discovered in 1977 during stellar occultation." }
+        ]
+    },
+    {
+        name: "Neptune",
+        image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Neptune_-_Voyager_2_%2829347980845%29_flatten_crop.jpg/250px-Neptune_-_Voyager_2_%2829347980845%29_flatten_crop.jpg",
+        info: {
+            "Type": "Ice Giant",
+            "Distance from Sun": "4.5 Billion km",
+            "Diameter": "49,244 km",
+            "Wind Speed": "2,100 km/h",
+            "Moons": "14",
+            "Orbital Period": "165 Earth Years"
+        },
+        features: [
+            { title: "Fastest Winds", desc: "Strongest winds in Solar System - supersonic storms reach 2,100 km/h." },
+            { title: "Great Dark Spot", desc: "Giant storm system similar to Jupiter's Great Red Spot." },
+            { title: "Mathematical Discovery", desc: "First planet located through mathematical predictions rather than observation." }
+        ]
+    }
+],
+
+            nebula: [
+                {
+                    name: "Orion Nebula",
+                    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg/1200px-Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg",
+                    info: {
+                        "Type": "Diffuse Nebula",
+                        "Distance": "1,344 Light Years",
+                        "Diameter": "24 Light Years",
+                        "Constellation": "Orion",
+                        "Age": "3 Million Years"
+                    },
+                    features: [
+                        { title: "Stellar Nursery", desc: "One of the most active star-forming regions in our galaxy." },
+                        { title: "Visible to Naked Eye", desc: "Appears as the middle 'star' in Orion's sword." },
+                        { title: "Trapezium Cluster", desc: "Contains four massive young stars that illuminate the nebula." }
+                    ]
+                },
+                {
+                    name: "Helix Nebula",
+                    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTb5XLWrL39voX4nrtivhv9TDIJhZggz2j1pQ&s",
+                    info: {
+                        "Type": "Planetary Nebula",
+                        "Distance": "655 Light Years",
+                        "Diameter": "2.87 Light Years",
+                        "Nickname": "Eye of God",
+                        "Central Star": "White Dwarf"
+                    },
+                    features: [
+                        { title: "Dying Star Remnant", desc: "Formed when a Sun-like star exhausted its nuclear fuel." },
+                        { title: "Complex Structure", desc: "Intricate gaseous patterns created by stellar winds." },
+                        { title: "Close Planetary Nebula", desc: "One of the closest planetary nebulae to Earth." }
+                    ]
+                },
+                {
+                    name: "Eagle Nebula",
+                    image: "https://assets.science.nasa.gov/dynamicimage/assets/science/missions/hubble/nebulae/emission/Hubble_EagleNeb_Fullsize_heic2507a.tif?w=3877&h=7800&fit=clip&crop=faces%2Cfocalpoint",
+                    info: {
+                        "Type": "H II Region",
+                        "Distance": "7,000 Light Years",
+                        "Diameter": "70x55 Light Years",
+                        "Constellation": "Serpens",
+                        "Famous Feature": "Pillars of Creation"
+                    },
+                    features: [
+                        { title: "Pillars of Creation", desc: "Iconic dust pillars where new stars are actively forming." },
+                        { title: "Hubble Masterpiece", desc: "One of the most famous astronomical images ever taken." },
+                        { title: "Young Star Cluster", desc: "Contains the young open cluster M16 with hot, massive stars." }
+                    ]
+                },
+                {
+                    name: "Carina Nebula",
+                    image: "https://assets.science.nasa.gov/content/dam/science/missions/hubble/releases/2010/04/STScI-01EVVDDZ349N8H64SMV94VAQ39.tif/jcr:content/renditions/4003x2719.jpg",
+                    info: {
+                        "Type": "Emission Nebula",
+                        "Distance": "8,500 Light Years",
+                        "Diameter": "460 Light Years",
+                        "Constellation": "Carina",
+                        "Stars": "Massive O-type"
+                    },
+                    features: [
+                        { title: "Massive Star Factory", desc: "Home to some of the most massive and luminous stars known." },
+                        { title: "Eta Carinae", desc: "Contains one of the most massive binary star systems in Milky Way." },
+                        { title: "Pillars of Destruction", desc: "Radiation from massive stars erodes and shapes gas clouds." }
+                    ]
+                }
+            ],
+
+            galaxy: [
+                {
+                    name: "Andromeda Galaxy",
+                    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcToK_mA55LUi9LVZzG2tjVpGh1AcIh50bpHcg&s",
+                    info: {
+                        "Type": "Spiral Galaxy",
+                        "Distance": "2.5 Million Light Years",
+                        "Diameter": "220,000 Light Years",
+                        "Stars": "1 Trillion",
+                        "Designation": "M31"
+                    },
+                    features: [
+                        { title: "Nearest Major Galaxy", desc: "Closest spiral galaxy to our Milky Way." },
+                        { title: "Naked Eye Visibility", desc: "Largest galaxy visible from Earth without telescope." },
+                        { title: "Future Collision", desc: "Will collide with Milky Way in about 4.5 billion years." }
+                    ]
+                },
+                {
+                    name: "Milky Way",
+                    image: "https://plus.unsplash.com/premium_photo-1669839137069-4166d6ea11f4?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8bWlsa3klMjB3YXklMjBnYWxheHl8ZW58MHx8MHx8fDA%3D&fm=jpg&q=60&w=3000",
+                    info: {
+                        "Type": "Barred Spiral Galaxy",
+                        "Diameter": "100,000-150,000 ly",
+                        "Stars": "200-400 Billion",
+                        "Age": "13.6 Billion Years",
+                        "Solar System Location": "Orion Arm"
+                    },
+                    features: [
+                        { title: "Our Cosmic Home", desc: "Contains our Solar System and all stars visible at night." },
+                        { title: "Supermassive Black Hole", desc: "Sagittarius A* at center with 4 million solar masses." },
+                        { title: "Complex Structure", desc: "Spiral arms, central bar, halo, and extensive dark matter." }
+                    ]
+                },
+                {
+                    name: "Whirlpool Galaxy",
+                    image: "https://science.nasa.gov/wp-content/uploads/2023/04/m51-and-companion_0-jpg.webp",
+                    info: {
+                        "Type": "Spiral Galaxy",
+                        "Distance": "23 Million Light Years",
+                        "Diameter": "60,000 Light Years",
+                        "Designation": "M51",
+                        "Companion": "NGC 5195"
+                    },
+                    features: [
+                        { title: "Perfect Spiral Structure", desc: "Classic example of a grand design spiral galaxy." },
+                        { title: "Interacting Galaxies", desc: "Gravitational interaction with smaller companion galaxy." },
+                        { title: "Active Star Formation", desc: "Bright pink regions indicate active star formation." }
+                    ]
+                },
+                {
+                    name: "Sombrero Galaxy",
+                    image: "https://assets.science.nasa.gov/dynamicimage/assets/science/missions/hubble/releases/2003/10/STScI-01EVT8Y32X8FP1XB0KHZ4CS8BG.tif?w=3000&h=1681&fit=clip&crop=faces%2Cfocalpoint",
+                    info: {
+                        "Type": "Unbarred Spiral",
+                        "Distance": "28 Million Light Years",
+                        "Diameter": "50,000 Light Years",
+                        "Designation": "M104",
+                        "Notable Feature": "Dust Lane"
+                    },
+                    features: [
+                        { title: "Distinctive Appearance", desc: "Prominent dust lane gives it a sombrero-like appearance." },
+                        { title: "Massive Central Bulge", desc: "Large central bulge suggests a supermassive black hole." },
+                        { title: "Globular Clusters", desc: "Contains nearly 2,000 globular clusters in its halo." }
+                    ]
+                }
+            ]
+        };
+
+        let currentCategory = "solar";
+        let currentIndex = 0;
+        let isRotating = false;
+
+        function displayObject() {
+            const obj = data[currentCategory][currentIndex];
+
+            document.getElementById("spaceObject").style.backgroundImage = `url('${obj.image}')`;
+            document.getElementById("objectTitle").textContent = obj.name;
+            document.getElementById("objectName").textContent = obj.name.toUpperCase();
+
+            // Fill info section
+            let infoHTML = "";
+            for (let [key, val] of Object.entries(obj.info || {})) {
+                infoHTML += `<div class="info-item">
+                    <span class="info-label">${key}:</span> ${val}
+                </div>`;
+            }
+            document.getElementById("objectInfo").innerHTML = infoHTML;
+
+            // Fill features section
+            let featureHTML = "";
+            (obj.features || []).forEach(f => {
+                featureHTML += `
+                <div class="feature-item">
+                    <div class="feature-title">${f.title}</div>
+                    <div>${f.desc}</div>
+                </div>`;
+            });
+            document.getElementById("featuresContainer").innerHTML = featureHTML;
+        }
+
+        // Tab switching
+        document.querySelectorAll(".tab").forEach(tab => {
+            tab.onclick = () => {
+                document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+                tab.classList.add("active");
+
+                currentCategory = tab.dataset.category;
+                currentIndex = 0;
+                displayObject();
+            };
+        });
+
+        // Object rotation animation and navigation
+        document.getElementById("objectDisplay").onclick = () => {
+            if (isRotating) return;
+            
+            isRotating = true;
+            const spaceObject = document.getElementById("spaceObject");
+            spaceObject.classList.add("rotating");
+            
+            setTimeout(() => {
+                currentIndex = (currentIndex + 1) % data[currentCategory].length;
+                displayObject();
+                spaceObject.classList.remove("rotating");
+                isRotating = false;
+            }, 700);
+        };
+
+        // Initial display
+        displayObject();
+    </script>
+
+</body>
+</html>
