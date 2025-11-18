@@ -7,7 +7,7 @@ Space Explorer is an interactive web application that lets users explore the Sol
 ###  Exploration Categories
 - **Solar System** – Sun, Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune  
 - **Nebulae** – Orion, Helix, Eagle, Carina  
-- **Galaxies** – Andromeda, Milky Way, Whirlpool, Sombrero  
+- **Galaxies** – Andromeda, Milky Way, Whirlpool, Sombrero Galaxy
 
 ###  UI Highlights
 - Smooth click-based navigation  
